@@ -1,0 +1,31 @@
+{{!
+    @template block_mcp/content
+
+    Course-aware Moodle MCP connection panel.
+}}
+<div class="block-mcp-content">
+    {{#isteacher}}
+        <h5>{{#str}}teacherheading, block_mcp{{/str}}</h5>
+        <p>{{#str}}teacherdescription, block_mcp{{/str}}</p>
+        {{#canwrite}}<p class="text-success">{{#str}}writeenabled, block_mcp{{/str}}</p>{{/canwrite}}
+        {{^canwrite}}<p class="text-muted">{{#str}}writedisabled, block_mcp{{/str}}</p>{{/canwrite}}
+    {{/isteacher}}
+    {{^isteacher}}
+        <h5>{{#str}}studentheading, block_mcp{{/str}}</h5>
+        <p>{{#str}}studentdescription, block_mcp{{/str}}</p>
+    {{/isteacher}}
+    <ol class="pl-3">
+        <li>{{#str}}stepone, block_mcp{{/str}}</li>
+        <li>
+            <label for="mcp-server-{{courseid}}">{{#str}}steptwo, block_mcp{{/str}}</label>
+            <input id="mcp-server-{{courseid}}" class="form-control form-control-sm"
+                type="text" value="{{endpoint}}" readonly="readonly" />
+        </li>
+        <li>{{#str}}stepthree, block_mcp{{/str}}</li>
+    </ol>
+    <p><a class="btn btn-primary btn-sm" href="{{chatgpturl}}" target="_blank" rel="noopener noreferrer">
+        {{#str}}chatgptbutton, block_mcp{{/str}}
+    </a></p>
+    <small class="text-muted d-block">{{#str}}securitynote, block_mcp{{/str}}</small>
+    <small class="text-muted d-block mt-2">{{#str}}accessnote, block_mcp{{/str}}</small>
+</div>
