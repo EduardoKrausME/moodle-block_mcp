@@ -107,7 +107,7 @@ final class get_my_tasks extends base_tool {
                     "due" => $due, "cutoff" => (int)$effective->cutoffdate,
                     "state" => $submission ? $submission->status : "not_submitted"];
             } else if ($cm->modname === "quiz" && has_capability("mod/quiz:view", $cm->context, $identity->userid)) {
-                $quiz = $DB->get_record("quiz", ["id" => $cm->instance], "id,timeopen,timeclose");
+                $quiz = $DB->get_record("quiz", ["id" => $cm->instance]);
                 if ($quiz) {
                     $quiz = quiz_update_effective_access($quiz, $identity->userid);
                     $tasks[] = ["cmid" => (int)$cm->id, "type" => "quiz", "name" => $cm->name,
