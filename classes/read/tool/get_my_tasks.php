@@ -73,7 +73,9 @@ final class get_my_tasks extends base_tool {
      * @return array Return value.
      */
     public function execute(array $arguments, authenticated_identity $identity): array {
-        global $DB;
+        global $DB, $CFG;
+        require_once($CFG->dirroot . "/mod/assign/locallib.php");
+        require_once($CFG->dirroot . "/mod/quiz/lib.php");
         $courseid = (int)$arguments["courseid"];
         $course = get_course($courseid);
         $modinfo = get_fast_modinfo($course, $identity->userid);
@@ -90,12 +92,24 @@ final class get_my_tasks extends base_tool {
                 $submission = $DB->get_record("assign_submission", [
                     "assignment" => $assignment->id, "userid" => $identity->userid, "latest" => 1,
                 ], "id,status,timemodified");
+                $instance = new \assign($cm->context, $cm, $course);
+                $instance->update_effective_access($identity->userid);
+                $effective = $instance->get_instance($identity->userid);
+                $flags = $DB->get_record("assign_user_flags", [
+                    "assignment" => $assignment->id, "userid" => $identity->userid,
+                ], "extensionduedate");
+                $extension = (int)($flags->extensionduedate ?? 0);
+                $due = (int)$effective->duedate;
+                if ($extension > $due) {
+                    $due = $extension;
+                }
                 $tasks[] = ["cmid" => (int)$cm->id, "type" => "assign", "name" => $cm->name,
-                    "due" => (int)$assignment->duedate, "cutoff" => (int)$assignment->cutoffdate,
+                    "due" => $due, "cutoff" => (int)$effective->cutoffdate,
                     "state" => $submission ? $submission->status : "not_submitted"];
             } else if ($cm->modname === "quiz" && has_capability("mod/quiz:view", $cm->context, $identity->userid)) {
                 $quiz = $DB->get_record("quiz", ["id" => $cm->instance], "id,timeopen,timeclose");
                 if ($quiz) {
+                    $quiz = quiz_update_effective_access($quiz, $identity->userid);
                     $tasks[] = ["cmid" => (int)$cm->id, "type" => "quiz", "name" => $cm->name,
                         "opens" => (int)$quiz->timeopen, "due" => (int)$quiz->timeclose];
                 }
