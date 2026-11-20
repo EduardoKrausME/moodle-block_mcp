@@ -28,6 +28,6 @@ defined("MOODLE_INTERNAL") || die;
 $plugin->version = 2026112001;
 $plugin->release = "1.0.1";
 $plugin->component = "block_mcp";
-$plugin->requires = 2024100700;
+$plugin->requires = 2020110900;
 $plugin->dependencies = ["local_mcp" => 2026112000];
 $plugin->maturity = MATURITY_BETA;

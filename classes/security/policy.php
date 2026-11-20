@@ -118,7 +118,7 @@ final class policy {
     private static function is_course_block(\stdClass $instance): bool {
         $pattern = (string)$instance->pagetypepattern;
         return $pattern === "course-view-*" || $pattern === "course-view"
-            || str_starts_with($pattern, "course-view-");
+            || strpos($pattern, "course-view-") === 0;
     }
 
     /** Decode only scalar configuration, without instantiating arbitrary PHP classes. */
