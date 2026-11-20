@@ -76,8 +76,7 @@ final class policy {
         }
         $ctx = context_course::instance($courseid);
         if (!is_enrolled($ctx, $userid, "", true) ||
-            !has_capability("block/mcp:use", $ctx, $userid) ||
-            !has_capability("moodle/course:view", $ctx, $userid)) {
+            !has_capability("block/mcp:use", $ctx, $userid)) {
             return $denied;
         }
         if (!$course->visible && !has_capability("moodle/course:viewhiddencourses", $ctx, $userid)) {
@@ -85,10 +84,17 @@ final class policy {
         }
         $isteacher = has_capability("block/mcp:teach", $ctx, $userid);
         $instances = $DB->get_records("block_instances", [
-            "blockname" => "mcp", "parentcontextid" => $ctx->id, "visible" => 1,
+            "blockname" => "mcp", "parentcontextid" => $ctx->id,
         ]);
         foreach ($instances as $instance) {
             if (!self::is_course_block($instance)) {
+                continue;
+            }
+            // An explicit hidden position disables access; absence of a position uses
+            // the block's default visibility.
+            if ($DB->record_exists("block_positions", [
+                "blockinstanceid" => $instance->id, "visible" => 0,
+            ])) {
                 continue;
             }
             $config = self::read_config((string)$instance->configdata);
