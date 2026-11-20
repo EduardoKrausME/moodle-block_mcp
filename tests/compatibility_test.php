@@ -8,16 +8,17 @@
 //
 // Moodle is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with Moodle. If not, see <http://www.gnu.org/licenses/>.
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
  * Verify the course-only access policy remains present on legacy Moodle.
  *
  * @package block_mcp
+ * @copyright 2026 Eduardo Kraus {@link https://eduardokraus.com}
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 namespace block_mcp;
