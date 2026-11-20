@@ -51,3 +51,9 @@ $string['teacherwrite'] = 'Allow teacher WRITE tools';
 $string['teacherwrite_help'] = 'Enables the selected, course-scoped MCP WRITE tools for users with block/mcp:write. The ChatGPT user must still confirm supported changes before execution. Site administration tools are never available in educational connections.';
 $string['writedisabled'] = 'This course allows read-only access through ChatGPT.';
 $string['writeenabled'] = 'Course management tools are enabled for your role.';
+
+$string['privacy:metadata:mcpclient'] = 'Moodle data requested by the user is transmitted through local_mcp to their connected external MCP client.';
+$string['privacy:metadata:mcpclient:userid'] = 'The authenticated user identifier may be included in MCP responses.';
+$string['privacy:metadata:mcpclient:grades'] = 'Visible grades may be transmitted to the external MCP client.';
+$string['privacy:metadata:mcpclient:coursework'] = 'Visible tasks, deadlines, submissions and learning content may be transmitted.';
+$string['privacy:metadata:mcpclient:participants'] = 'Authorized teacher tools may transmit participant information.';
