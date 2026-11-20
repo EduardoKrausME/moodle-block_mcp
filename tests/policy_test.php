@@ -77,6 +77,23 @@ final class policy_test extends \advanced_testcase {
         $this->assertFalse(policy::user_has_access($student->id));
     }
 
+    /** MCP discovers the policy and enforces it on educational tool calls. */
+    public function test_mcp_access_policy_is_discovered_and_denies_without_block(): void {
+        $this->resetAfterTest();
+        $generator = $this->getDataGenerator();
+        $course = $generator->create_course();
+        $student = $generator->create_user();
+        $generator->enrol_user($student->id, $course->id, "student");
+        $policies = \local_mcp\extension\manager::access_policies();
+        $ours = array_filter($policies, static fn($p) => $p instanceof \block_mcp\mcp\access_policy);
+        $this->assertNotEmpty($ours);
+        $policy = reset($ours);
+        $this->assertFalse($policy->tool_visible($student->id, "block_mcp_get_my_tasks", false));
+        $this->expectException(\local_mcp\exception\api_exception::class);
+        $policy->authorize_tool($student->id, "block_mcp_get_my_tasks", false,
+            context_course::instance($course->id), ["courseid" => $course->id]);
+    }
+
     /** Block permissions have to be defined to allow adding course instances. */
     public function test_addinstance_capability_is_defined(): void {
         $capabilities = [];
