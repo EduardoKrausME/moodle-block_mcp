@@ -26,13 +26,12 @@
 defined("MOODLE_INTERNAL") || die;
 
 $string['accessnote'] = 'Custom MCP connections are not available on every ChatGPT plan or workspace.';
-$string['audience'] = 'Who can connect';
 $string['chatgptbutton'] = 'Open ChatGPT';
 $string['mcp:addinstance'] = 'Add a new Moodle MCP block';
 $string['mcp:manage'] = 'Manage course MCP integration settings';
 $string['mcp:myaddinstance'] = 'Add a Moodle MCP block to the dashboard';
 $string['mcp:teach'] = 'Use the teacher MCP tools for a course';
-$string['mcp:use'] = 'Use Moodle MCP in a course';
+$string['mcp:use'] = 'Access Moodle MCP as teaching staff';
 $string['mcp:write'] = 'Use approved course MCP write tools';
 $string['pluginname'] = 'Moodle MCP for ChatGPT';
 $string['privacy:metadata'] = 'The Moodle MCP block only stores course-level block settings and does not itself store personal data. OAuth connections and audit logs are managed by local_mcp.';
@@ -41,12 +40,8 @@ $string['settingsheading'] = 'Course integration settings';
 $string['stepone'] = 'Open ChatGPT and configure a custom MCP connection if your account supports it.';
 $string['stepthree'] = 'Authorize the connection with your own Moodle account.';
 $string['steptwo'] = 'Use this Moodle MCP server URL:';
-$string['studentdescription'] = 'Study the visible course content and check your own progress, deadlines and grades in ChatGPT.';
-$string['studentheading'] = 'Your AI study assistant';
 $string['teacherdescription'] = 'Use ChatGPT to consult your course and organize your teaching activities.';
 $string['teacherheading'] = 'Your AI course assistant';
-$string['teachers'] = 'Teachers only';
-$string['teachersandstudents'] = 'Teachers and students';
 $string['teacherwrite'] = 'Allow teacher WRITE tools';
 $string['teacherwrite_help'] = 'Enables the selected, course-scoped MCP WRITE tools for users with block/mcp:write. The ChatGPT user must still confirm supported changes before execution. Site administration tools are never available in educational connections.';
 $string['writedisabled'] = 'This course allows read-only access through ChatGPT.';

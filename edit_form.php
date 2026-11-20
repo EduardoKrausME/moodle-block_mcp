@@ -25,16 +25,11 @@
 
 defined("MOODLE_INTERNAL") || die;
 
-/** Course-level settings for which users can access MCP. */
+/** Teacher-only course MCP settings. */
 class block_mcp_edit_form extends block_edit_form {
     /** Build the additional instance configuration fields. */
     protected function specific_definition($mform): void {
         $mform->addElement("header", "configheader", get_string("settingsheading", "block_mcp"));
-        $mform->addElement("select", "config_audience", get_string("audience", "block_mcp"), [
-            "teachers" => get_string("teachers", "block_mcp"),
-            "all" => get_string("teachersandstudents", "block_mcp"),
-        ]);
-        $mform->setDefault("config_audience", "teachers");
         $mform->addElement("advcheckbox", "config_teacherwrite", get_string("teacherwrite", "block_mcp"));
         $mform->setDefault("config_teacherwrite", 0);
         $mform->addHelpButton("config_teacherwrite", "teacherwrite", "block_mcp");

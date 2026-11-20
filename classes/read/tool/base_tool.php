@@ -37,9 +37,9 @@ abstract class base_tool implements tool_interface {
             "required" => $required, "additionalProperties" => false];
     }
 
-    /** The default Moodle capability is checked by local_mcp before execution. */
+    /** Require teacher permissions independently of the extension access policy. */
     public function get_required_capability(): string {
-        return "block/mcp:use";
+        return "block/mcp:teach";
     }
 
     /** Most student tools operate on one course. */

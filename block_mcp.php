@@ -80,7 +80,6 @@ class block_mcp extends block_base {
         $context = \context_course::instance($courseid);
         $data = [
             "courseid" => $courseid,
-            "isteacher" => $access["teacher"],
             "canwrite" => $access["write"],
             "coursename" => format_string($this->page->course->fullname, true, ["context" => $context]),
             "endpoint" => rtrim($CFG->wwwroot, "/") . "/local/mcp/server.php",

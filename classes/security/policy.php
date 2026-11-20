@@ -36,8 +36,8 @@ use local_mcp\exception\api_exception;
  * All unknown tools and non-course contexts are denied for educational OAuth.
  */
 final class policy {
-    /** @var string[] Course-bound tools safe for student connections. */
-    private const STUDENT_READ = [
+    /** @var string[] Course-bound READ tools for authorized teaching staff. */
+    private const COURSE_READ = [
         "get_course_contents", "get_course_activities", "get_course_sections", "get_progress",
         "get_assignment", "get_assignments", "get_quiz", "get_quizzes",
         "block_mcp_get_study_content", "block_mcp_get_my_tasks", "block_mcp_get_my_grades",
@@ -75,8 +75,14 @@ final class policy {
             return $denied;
         }
         $ctx = context_course::instance($courseid);
-        if (!is_enrolled($ctx, $userid, "", true) ||
+        // Legacy audience=all and a student :use permission must not grant access.
+        if (!has_capability("block/mcp:teach", $ctx, $userid) ||
             !has_capability("block/mcp:use", $ctx, $userid)) {
+            return $denied;
+        }
+        // A course manager can have access without an active enrolment.
+        if (!is_enrolled($ctx, $userid, "", true) &&
+            !has_capability("moodle/course:view", $ctx, $userid)) {
             return $denied;
         }
         if (!$course->visible && !has_capability("moodle/course:viewhiddencourses", $ctx, $userid)) {
@@ -98,9 +104,6 @@ final class policy {
                 continue;
             }
             $config = self::read_config((string)$instance->configdata);
-            if (!$isteacher && ($config["audience"] ?? "teachers") !== "all") {
-                continue;
-            }
             return [
                 "allowed" => true,
                 "teacher" => $isteacher,
@@ -132,15 +135,13 @@ final class policy {
             return [];
         }
         $values = (array)$value;
-        return [
-            "audience" => ($values["audience"] ?? "teachers") === "all" ? "all" : "teachers",
-            "teacherwrite" => !empty($values["teacherwrite"]),
-        ];
+        return ["teacherwrite" => !empty($values["teacherwrite"])];
     }
 
-    /** Find eligible courses for OAuth without consulting a global role name. */
+    /** Include courses managed by non-enrolled staff and recheck each block. */
     private static function any_course(int $userid, bool $write): bool {
-        foreach (enrol_get_users_courses($userid, true, ["id"]) as $course) {
+        $courses = get_user_capability_course("block/mcp:teach", $userid);
+        foreach ($courses ?: [] as $course) {
             $access = self::course_access($userid, (int)$course->id);
             if ($access[$write ? "write" : "allowed"]) {
                 return true;
@@ -164,21 +165,10 @@ final class policy {
         if ($write) {
             return in_array($tool, self::TEACHER_WRITE, true) && self::user_has_write_access($userid);
         }
-        if (in_array($tool, self::STUDENT_READ, true)) {
+        if (in_array($tool, self::COURSE_READ, true)) {
             return self::user_has_access($userid);
         }
-        return in_array($tool, self::TEACHER_READ, true) && self::any_teacher_course($userid);
-    }
-
-    /** Search only enrolments, then verify teacher capabilities in each course. */
-    private static function any_teacher_course(int $userid): bool {
-        foreach (enrol_get_users_courses($userid, true, ["id"]) as $course) {
-            $access = self::course_access($userid, (int)$course->id);
-            if ($access["allowed"] && $access["teacher"]) {
-                return true;
-            }
-        }
-        return false;
+        return in_array($tool, self::TEACHER_READ, true) && self::user_has_access($userid);
     }
 
     /**
@@ -193,19 +183,15 @@ final class policy {
             self::deny();
         }
         $access = self::course_access($userid, (int)$coursectx->instanceid);
-        if (!$access["allowed"]) {
+        if (!$access["allowed"] || !$access["teacher"]) {
             self::deny();
         }
         if ($write) {
             if (!$access["write"] || !in_array($tool, self::TEACHER_WRITE, true)) {
                 self::deny();
             }
-        } else if (!in_array($tool, self::STUDENT_READ, true) &&
-            (!$access["teacher"] || !in_array($tool, self::TEACHER_READ, true))) {
-            self::deny();
-        }
-        if (!$access["teacher"] && $tool === "get_progress" &&
-            (isset($args["userid"]) && (int)$args["userid"] !== $userid)) {
+        } else if (!in_array($tool, self::COURSE_READ, true) &&
+            !in_array($tool, self::TEACHER_READ, true)) {
             self::deny();
         }
         // Bind explicit course identifiers to the context returned by the tool.

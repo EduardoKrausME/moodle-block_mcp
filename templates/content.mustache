@@ -20,16 +20,10 @@
     Course-aware Moodle MCP connection panel.
 }}
 <div class="block-mcp-content">
-    {{#isteacher}}
-        <h5>{{#str}}teacherheading, block_mcp{{/str}}</h5>
-        <p>{{#str}}teacherdescription, block_mcp{{/str}}</p>
-        {{#canwrite}}<p class="text-success">{{#str}}writeenabled, block_mcp{{/str}}</p>{{/canwrite}}
-        {{^canwrite}}<p class="text-muted">{{#str}}writedisabled, block_mcp{{/str}}</p>{{/canwrite}}
-    {{/isteacher}}
-    {{^isteacher}}
-        <h5>{{#str}}studentheading, block_mcp{{/str}}</h5>
-        <p>{{#str}}studentdescription, block_mcp{{/str}}</p>
-    {{/isteacher}}
+    <h5>{{#str}}teacherheading, block_mcp{{/str}}</h5>
+    <p>{{#str}}teacherdescription, block_mcp{{/str}}</p>
+    {{#canwrite}}<p class="text-success">{{#str}}writeenabled, block_mcp{{/str}}</p>{{/canwrite}}
+    {{^canwrite}}<p class="text-muted">{{#str}}writedisabled, block_mcp{{/str}}</p>{{/canwrite}}
     <ol class="pl-3">
         <li>{{#str}}stepone, block_mcp{{/str}}</li>
         <li>
