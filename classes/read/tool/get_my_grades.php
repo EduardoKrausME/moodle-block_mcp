@@ -104,7 +104,7 @@ final class get_my_grades extends base_tool {
                 continue;
             }
             $entry = $item->grades[$identity->userid] ?? null;
-            $out[] = ["item" => $item->name, "formatted" => $entry?->str_grade,
+            $out[] = ["item" => $item->name, "formatted" => ($entry !== null ? $entry->str_grade : null),
                 "minimum" => (float)$item->grademin, "maximum" => (float)$item->grademax];
         }
         return ["courseid" => $courseid, "userid" => $identity->userid, "grades" => $out];
