@@ -39,7 +39,7 @@ abstract class base_tool implements tool_interface {
 
     /** The default Moodle capability is checked by local_mcp before execution. */
     public function get_required_capability(): string {
-        return "moodle/course:view";
+        return "block/mcp:use";
     }
 
     /** Most student tools operate on one course. */
