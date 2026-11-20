@@ -54,7 +54,7 @@ final class policy_test extends \advanced_testcase {
         $block = (object)[
             "blockname" => "mcp", "parentcontextid" => $ctx->id, "showinsubcontexts" => 0,
             "pagetypepattern" => "course-view-*", "subpagepattern" => null,
-            "defaultregion" => "side-pre", "defaultweight" => 0, "visible" => 1,
+            "defaultregion" => "side-pre", "defaultweight" => 0,
             "configdata" => base64_encode(serialize((object)["audience" => "teachers", "teacherwrite" => 0])),
         ];
         $block->id = $DB->insert_record("block_instances", $block);
@@ -69,7 +69,11 @@ final class policy_test extends \advanced_testcase {
         $this->assertFalse(policy::tool_visible($student->id, "set_site_config", false));
         $this->assertFalse(policy::tool_visible($student->id, "grade_submission", true));
         $this->assertTrue(policy::tool_visible($student->id, "block_mcp_get_my_grades", false));
-        $DB->set_field("block_instances", "visible", 0, ["id" => $block->id]);
+        $DB->insert_record("block_positions", (object)[
+            "blockinstanceid" => $block->id, "contextid" => $ctx->id,
+            "pagetype" => "course-view-*", "subpage" => "", "visible" => 0,
+            "region" => "side-pre", "weight" => 0,
+        ]);
         $this->assertFalse(policy::user_has_access($student->id));
     }
 
@@ -95,10 +99,15 @@ final class policy_test extends \advanced_testcase {
         $block = (object)[
             "blockname" => "mcp", "parentcontextid" => $ctx->id, "showinsubcontexts" => 0,
             "pagetypepattern" => "course-view-*", "subpagepattern" => null,
-            "defaultregion" => "side-pre", "defaultweight" => 0, "visible" => 0,
+            "defaultregion" => "side-pre", "defaultweight" => 0,
             "configdata" => base64_encode(serialize((object)["audience" => "all", "teacherwrite" => 0])),
         ];
-        $DB->insert_record("block_instances", $block);
+        $block->id = $DB->insert_record("block_instances", $block);
+        $DB->insert_record("block_positions", (object)[
+            "blockinstanceid" => $block->id, "contextid" => $ctx->id,
+            "pagetype" => "course-view-*", "subpage" => "", "visible" => 0,
+            "region" => "side-pre", "weight" => 0,
+        ]);
         $this->assertFalse(policy::course_access($student->id, $course->id)["allowed"]);
     }
 
@@ -114,7 +123,7 @@ final class policy_test extends \advanced_testcase {
         $instance = (object)[
             "blockname" => "mcp", "parentcontextid" => $ctx->id, "showinsubcontexts" => 0,
             "pagetypepattern" => "course-view-*", "subpagepattern" => null,
-            "defaultregion" => "side-pre", "defaultweight" => 0, "visible" => 1,
+            "defaultregion" => "side-pre", "defaultweight" => 0,
             "configdata" => base64_encode(serialize((object)["audience" => "all", "teacherwrite" => 1])),
         ];
         $DB->insert_record("block_instances", $instance);
