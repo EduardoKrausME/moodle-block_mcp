@@ -4,7 +4,7 @@ A Moodle 4.5+/5.x course block that permits teachers, or teachers and students, 
 
 ## Requirements
 
-- Install `local_mcp` (version 2026101900 or newer).
+- Install `local_mcp` (version 2026112000 or newer).
 - **Apply the accompanying local_mcp integration patch** before enabling student or teacher OAuth. The upstream authorization endpoint requires `moodle/site:config` and would otherwise reject them. The patch is maintained separately and is not part of this repository commit.
 - The ChatGPT workspace/account must support custom MCP server connections.
 
@@ -14,7 +14,7 @@ Install this repository under `blocks/mcp`, upgrade Moodle, then add the block t
 
 ## Permission model
 
-Course-scoped checks require an enabled, visible course block, active enrolment, Moodle capabilities and the individual course settings. Every MCP operation is checked again at execution time by the required local_mcp integration patch. Unknown tools and system, category and user-level contexts are denied for educational users. READ and WRITE tool lists are explicitly allowlisted and administrative tools are unavailable to educational users.
+Course-scoped checks require an enabled, visible course block, active enrolment, Moodle capabilities and the individual course settings. Every MCP operation is checked again at execution time by the local_mcp access policy extension. Unknown tools and system, category and user-level contexts are denied for educational users. READ and WRITE tool lists are explicitly allowlisted and administrative tools are unavailable to educational users.
 
 Available tools include `block_mcp_get_study_content`, `block_mcp_get_my_tasks`, and `block_mcp_get_my_grades`. The original local_mcp READ/WRITE registries remain responsible for tool execution and confirmation previews.
 
