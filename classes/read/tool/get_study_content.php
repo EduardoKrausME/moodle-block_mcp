@@ -27,6 +27,7 @@ namespace block_mcp\read\tool;
 
 use context;
 use context_module;
+use local_mcp\exception\api_exception;
 use local_mcp\security\authenticated_identity;
 
 /** Read the visible textual content of selected learning resources. */
@@ -91,14 +92,14 @@ final class get_study_content extends base_tool {
         $modinfo = get_fast_modinfo($course, $identity->userid);
         $visiblecm = $modinfo->cms[$cmid] ?? null;
         if (!$visiblecm || !$visiblecm->uservisible) {
-            throw new \local_mcp\exception\api_exception("permission_denied", 403);
+            throw new api_exception("permission_denied", 403);
         }
         $context = context_module::instance($cmid);
         $result = ["courseid" => (int)$course->id, "cmid" => $cmid,
             "type" => $cm->modname, "title" => $cm->name, "sections" => []];
         if ($cm->modname === "page") {
             if (!has_capability("mod/page:view", $context, $identity->userid)) {
-                throw new \local_mcp\exception\api_exception("permission_denied", 403);
+                throw new api_exception("permission_denied", 403);
             }
             $page = $DB->get_record("page", ["id" => $cm->instance],
                 "id,content,contentformat", MUST_EXIST);
@@ -111,7 +112,7 @@ final class get_study_content extends base_tool {
                 "text" => self::plaintext($label->intro, (int)$label->introformat, $context)];
         } else if ($cm->modname === "book") {
             if (!has_capability("mod/book:read", $context, $identity->userid)) {
-                throw new \local_mcp\exception\api_exception("permission_denied", 403);
+                throw new api_exception("permission_denied", 403);
             }
             $chapters = $DB->get_records("book_chapters", ["bookid" => $cm->instance, "hidden" => 0],
                 "pagenum ASC", "id,title,content,contentformat");
@@ -120,7 +121,7 @@ final class get_study_content extends base_tool {
                     "text" => self::plaintext($chapter->content, (int)$chapter->contentformat, $context)];
             }
         } else {
-            throw new \local_mcp\exception\api_exception("unsupported_resource", 400);
+            throw new api_exception("unsupported_resource", 400);
         }
         return $result;
     }

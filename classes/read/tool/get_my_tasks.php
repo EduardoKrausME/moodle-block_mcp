@@ -25,6 +25,7 @@
 
 namespace block_mcp\read\tool;
 
+use assign;
 use local_mcp\security\authenticated_identity;
 
 /** Assignment and quiz deadlines from modules visible to the connected user. */
@@ -93,7 +94,7 @@ final class get_my_tasks extends base_tool {
                     "assignment" => $assignment->id, "userid" => $identity->userid, "latest" => 1,
                 ], "id,status,timemodified");
                 $module = get_coursemodule_from_id("assign", (int)$cm->id, $courseid, false, MUST_EXIST);
-                $instance = new \assign($cm->context, $module, $course);
+                $instance = new assign($cm->context, $module, $course);
                 $instance->update_effective_access($identity->userid);
                 $effective = $instance->get_instance($identity->userid);
                 $flags = $DB->get_record("assign_user_flags", [

@@ -24,11 +24,17 @@
 
 namespace block_mcp;
 
+use advanced_testcase;
+use block_mcp\mcp\access_policy;
+use block_mcp\read\tool\get_my_tasks;
 use block_mcp\security\policy;
 use context_course;
+use context_system;
+use local_mcp\exception\api_exception;
+use local_mcp\extension\manager;
 
 /** Course policy test cases. */
-final class policy_test extends \advanced_testcase {
+final class policy_test extends advanced_testcase {
     /** A student must not inherit a ChatGPT connection from a course without this block. */
     public function test_no_block_means_no_educational_access(): void {
         $this->resetAfterTest();
@@ -85,12 +91,12 @@ final class policy_test extends \advanced_testcase {
         $course = $generator->create_course();
         $student = $generator->create_user();
         $generator->enrol_user($student->id, $course->id, "student");
-        $policies = \local_mcp\extension\manager::access_policies();
-        $ours = array_filter($policies, static fn($p) => $p instanceof \block_mcp\mcp\access_policy);
+        $policies = manager::access_policies();
+        $ours = array_filter($policies, static fn($p) => $p instanceof access_policy);
         $this->assertNotEmpty($ours);
         $policy = reset($ours);
         $this->assertFalse($policy->tool_visible($student->id, "block_mcp_get_my_tasks", false));
-        $this->expectException(\local_mcp\exception\api_exception::class);
+        $this->expectException(api_exception::class);
         $policy->authorize_tool($student->id, "block_mcp_get_my_tasks", false,
             context_course::instance($course->id), ["courseid" => $course->id]);
     }
@@ -150,7 +156,7 @@ final class policy_test extends \advanced_testcase {
         $this->assertFalse(policy::tool_visible($student->id, "grade_submission", true));
         $this->assertFalse(policy::tool_visible($student->id, "set_site_config", true));
         $this->assertFalse(policy::tool_visible($student->id, "block_mcp_get_my_tasks", false));
-        $this->expectException(\local_mcp\exception\api_exception::class);
+        $this->expectException(api_exception::class);
         policy::authorize_tool($student->id, "block_mcp_get_my_tasks", false, $ctx,
             ["courseid" => $course->id]);
     }
@@ -166,7 +172,7 @@ final class policy_test extends \advanced_testcase {
         $managerroles = get_archetype_roles("manager");
         $this->assertNotEmpty($managerroles);
         $managerrole = reset($managerroles);
-        role_assign($managerrole->id, $manager->id, \context_system::instance()->id);
+        role_assign($managerrole->id, $manager->id, context_system::instance()->id);
         $DB->insert_record("block_instances", (object)[
             "blockname" => "mcp", "parentcontextid" => $ctx->id, "showinsubcontexts" => 0,
             "pagetypepattern" => "course-view-*", "subpagepattern" => null,
@@ -181,7 +187,7 @@ final class policy_test extends \advanced_testcase {
 
     /** Read tools must require teaching permissions even without policy discovery. */
     public function test_read_tools_require_teacher_capability(): void {
-        $tool = new \block_mcp\read\tool\get_my_tasks();
+        $tool = new get_my_tasks();
         $this->assertSame("block/mcp:teach", $tool->get_required_capability());
     }
 }

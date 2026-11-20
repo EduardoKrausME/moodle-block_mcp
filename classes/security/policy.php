@@ -29,7 +29,9 @@ use context;
 use context_course;
 use context_module;
 use context_system;
+use core_plugin_manager;
 use local_mcp\exception\api_exception;
+use stdClass;
 
 /**
  * Per-course policy applied to both discovery and execution in local_mcp.
@@ -66,7 +68,7 @@ final class policy {
         if ($userid <= 0 || $courseid <= SITEID) {
             return $denied;
         }
-        $plugininfo = \core_plugin_manager::instance()->get_plugin_info("block_mcp");
+        $plugininfo = core_plugin_manager::instance()->get_plugin_info("block_mcp");
         if (!$plugininfo || $plugininfo->is_enabled() === false) {
             return $denied;
         }
@@ -115,7 +117,7 @@ final class policy {
     }
 
     /** Ignore block instances not configured for a course page. */
-    private static function is_course_block(\stdClass $instance): bool {
+    private static function is_course_block(stdClass $instance): bool {
         $pattern = (string)$instance->pagetypepattern;
         return $pattern === "course-view-*" || $pattern === "course-view"
             || strpos($pattern, "course-view-") === 0;

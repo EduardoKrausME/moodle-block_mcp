@@ -23,6 +23,8 @@
  */
 
 
+use block_mcp\security\policy;
+
 defined("MOODLE_INTERNAL") || die;
 
 /**
@@ -73,11 +75,11 @@ class block_mcp extends block_base {
         if ($courseid <= SITEID || !isloggedin() || isguestuser()) {
             return $this->content;
         }
-        $access = \block_mcp\security\policy::course_access((int)$USER->id, $courseid);
+        $access = policy::course_access((int)$USER->id, $courseid);
         if (!$access["allowed"]) {
             return $this->content;
         }
-        $context = \context_course::instance($courseid);
+        $context = context_course::instance($courseid);
         $data = [
             "courseid" => $courseid,
             "canwrite" => $access["write"],

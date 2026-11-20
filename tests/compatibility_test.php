@@ -23,11 +23,12 @@
 namespace block_mcp;
 
 use advanced_testcase;
+use block_mcp\security\policy;
 
 final class compatibility_test extends advanced_testcase {
     public function test_course_access_denies_anonymous_user(): void {
         $this->assertSame([
             'allowed' => false, 'teacher' => false, 'write' => false,
-        ], \block_mcp\security\policy::course_access(0, SITEID));
+        ], policy::course_access(0, SITEID));
     }
 }

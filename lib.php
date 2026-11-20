@@ -22,9 +22,12 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use block_mcp\mcp\access_policy;
+use local_mcp\extension\access_policy_interface;
+
 defined('MOODLE_INTERNAL') || die;
 
 /** Return the educational course policy to local_mcp. */
-function block_mcp_mcp_access_policy(): \local_mcp\extension\access_policy_interface {
-    return new \block_mcp\mcp\access_policy();
+function block_mcp_mcp_access_policy(): access_policy_interface {
+    return new access_policy();
 }

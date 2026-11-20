@@ -24,24 +24,26 @@
 
 namespace block_mcp\mcp;
 
+use block_mcp\security\policy;
 use context;
+use context_system;
 use local_mcp\extension\access_policy_interface;
 
 /** Restrict educational accounts while preserving site administrative MCP access. */
 final class access_policy implements access_policy_interface {
     private function restricted(int $userid): bool {
         return !is_siteadmin($userid)
-            && !has_capability('moodle/site:config', \context_system::instance(), $userid);
+            && !has_capability('moodle/site:config', context_system::instance(), $userid);
     }
 
     public function tool_visible(int $userid, string $tool, bool $write): bool {
         return !$this->restricted($userid)
-            || \block_mcp\security\policy::tool_visible($userid, $tool, $write);
+            || policy::tool_visible($userid, $tool, $write);
     }
 
     public function authorize_tool(int $userid, string $tool, bool $write, context $context, array $args): void {
         if ($this->restricted($userid)) {
-            \block_mcp\security\policy::authorize_tool($userid, $tool, $write, $context, $args);
+            policy::authorize_tool($userid, $tool, $write, $context, $args);
         }
     }
 }

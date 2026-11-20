@@ -26,6 +26,9 @@
 namespace block_mcp\read\tool;
 
 use context_course;
+use grade_grade;
+use grade_item;
+use local_mcp\exception\api_exception;
 use local_mcp\security\authenticated_identity;
 
 /** Only show the connected user's own non-hidden grades. */
@@ -83,20 +86,20 @@ final class get_my_grades extends base_tool {
         $course = get_course($courseid);
         if (!$course->showgrades &&
             !has_capability("moodle/grade:viewall", $context, $identity->userid)) {
-            throw new \local_mcp\exception\api_exception("permission_denied", 403);
+            throw new api_exception("permission_denied", 403);
         }
         if (!has_capability("moodle/grade:view", $context, $identity->userid)
             && !has_capability("moodle/grade:viewall", $context, $identity->userid)) {
-            throw new \local_mcp\exception\api_exception("permission_denied", 403);
+            throw new api_exception("permission_denied", 403);
         }
         $data = grade_get_grades($courseid, "", "", 0, $identity->userid);
         $out = [];
         foreach ($data->items ?? [] as $item) {
-            $gradeitem = \grade_item::fetch(["id" => (int)$item->id]);
+            $gradeitem = grade_item::fetch(["id" => (int)$item->id]);
             if (!$gradeitem || $gradeitem->is_hidden()) {
                 continue;
             }
-            $grade = \grade_grade::fetch(["itemid" => $gradeitem->id, "userid" => $identity->userid]);
+            $grade = grade_grade::fetch(["itemid" => $gradeitem->id, "userid" => $identity->userid]);
             if ($grade && $grade->is_hidden()) {
                 continue;
             }
