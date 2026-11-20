@@ -205,7 +205,7 @@ final class policy {
             self::deny();
         }
         if (!$access["teacher"] && $tool === "get_progress" &&
-            (int)($args["userid"] ?? 0) !== $userid) {
+            (isset($args["userid"]) && (int)$args["userid"] !== $userid)) {
             self::deny();
         }
         // Bind explicit course identifiers to the context returned by the tool.
