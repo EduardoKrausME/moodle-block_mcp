@@ -30,22 +30,49 @@ use local_mcp\security\authenticated_identity;
 
 /** Only show the connected user's own non-hidden grades. */
 final class get_my_grades extends base_tool {
+    /**
+     * Method get_name.
+     *
+     * @return string Return value.
+     */
     public function get_name(): string {
         return "block_mcp_get_my_grades";
     }
 
+    /**
+     * Method get_title.
+     *
+     * @return string Return value.
+     */
     public function get_title(): string {
         return "Get my visible grades";
     }
 
+    /**
+     * Method get_description.
+     *
+     * @return string Return value.
+     */
     public function get_description(): string {
         return "Retrieve only my non-hidden gradebook items in an accessible Moodle course.";
     }
 
+    /**
+     * Method get_input_schema.
+     *
+     * @return array Return value.
+     */
     public function get_input_schema(): array {
         return $this->schema(["courseid" => ["type" => "integer", "minimum" => 2]], ["courseid"]);
     }
 
+    /**
+     * Method execute.
+     *
+     * @param array $arguments Parameter arguments.
+     * @param authenticated_identity $identity Parameter identity.
+     * @return array Return value.
+     */
     public function execute(array $arguments, authenticated_identity $identity): array {
         global $CFG;
         require_once($CFG->libdir . "/gradelib.php");

@@ -29,22 +29,49 @@ use local_mcp\security\authenticated_identity;
 
 /** Assignment and quiz deadlines from modules visible to the connected user. */
 final class get_my_tasks extends base_tool {
+    /**
+     * Method get_name.
+     *
+     * @return string Return value.
+     */
     public function get_name(): string {
         return "block_mcp_get_my_tasks";
     }
 
+    /**
+     * Method get_title.
+     *
+     * @return string Return value.
+     */
     public function get_title(): string {
         return "Get my upcoming coursework";
     }
 
+    /**
+     * Method get_description.
+     *
+     * @return string Return value.
+     */
     public function get_description(): string {
         return "List my visible assignments and quizzes with deadlines and submission state.";
     }
 
+    /**
+     * Method get_input_schema.
+     *
+     * @return array Return value.
+     */
     public function get_input_schema(): array {
         return $this->schema(["courseid" => ["type" => "integer", "minimum" => 2]], ["courseid"]);
     }
 
+    /**
+     * Method execute.
+     *
+     * @param array $arguments Parameter arguments.
+     * @param authenticated_identity $identity Parameter identity.
+     * @return array Return value.
+     */
     public function execute(array $arguments, authenticated_identity $identity): array {
         global $DB;
         $courseid = (int)$arguments["courseid"];
