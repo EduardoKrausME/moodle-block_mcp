@@ -25,8 +25,6 @@
 
 use block_mcp\security\policy;
 
-defined("MOODLE_INTERNAL") || die;
-
 /**
  * Course block that advertises OAuth-based Moodle MCP integration.
  */

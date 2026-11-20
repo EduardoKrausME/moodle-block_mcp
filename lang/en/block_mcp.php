@@ -23,7 +23,7 @@
  */
 
 
-defined("MOODLE_INTERNAL") || die;
+defined('MOODLE_INTERNAL') || die;
 
 $string['accessnote'] = 'Custom MCP connections are not available on every ChatGPT plan or workspace.';
 $string['chatgptbutton'] = 'Open ChatGPT';

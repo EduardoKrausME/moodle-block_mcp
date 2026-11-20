@@ -23,7 +23,7 @@
  */
 
 
-defined("MOODLE_INTERNAL") || die;
+defined('MOODLE_INTERNAL') || die;
 
 $capabilities = [
     "block/mcp:myaddinstance" => [
