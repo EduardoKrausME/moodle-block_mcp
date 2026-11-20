@@ -25,12 +25,19 @@
 
 namespace block_mcp\privacy;
 
-use core_privacy\local\metadata\null_provider;
+use core_privacy\local\metadata\collection;
+use core_privacy\local\metadata\provider as metadata_provider;
 
 /** The block itself stores no personal information. */
-final class provider implements null_provider {
-    /** Explain that token and audit storage belong to the required local_mcp. */
-    public static function get_reason(): string {
-        return "privacy:metadata";
+final class provider implements metadata_provider {
+    /** Declare the learner data transmitted through the configured MCP service. */
+    public static function get_metadata(collection $collection): collection {
+        $collection->add_external_location_link('mcpclient', [
+            'userid' => 'privacy:metadata:mcpclient:userid',
+            'grades' => 'privacy:metadata:mcpclient:grades',
+            'coursework' => 'privacy:metadata:mcpclient:coursework',
+            'participants' => 'privacy:metadata:mcpclient:participants',
+        ], 'privacy:metadata:mcpclient');
+        return $collection;
     }
 }
