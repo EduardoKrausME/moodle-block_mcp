@@ -1,4 +1,4 @@
-# block_mcp — Moodle MCP for ChatGPT
+# block_mcp - Moodle MCP for ChatGPT
 
 A Moodle 4.5+/5.x course block that permits teachers and course managers (including non-enrolled managers) to connect their own ChatGPT account to Moodle. WRITE tools are course-scoped and disabled by default.
 
