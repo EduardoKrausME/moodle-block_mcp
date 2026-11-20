@@ -61,6 +61,7 @@ final class policy_test extends advanced_testcase {
             "blockname" => "mcp", "parentcontextid" => $ctx->id, "showinsubcontexts" => 0,
             "pagetypepattern" => "course-view-*", "subpagepattern" => null,
             "defaultregion" => "side-pre", "defaultweight" => 0,
+            "timecreated" => time(), "timemodified" => time(),
             "configdata" => base64_encode(serialize((object)["audience" => "teachers", "teacherwrite" => 0])),
         ];
         $block->id = $DB->insert_record("block_instances", $block);
@@ -126,6 +127,7 @@ final class policy_test extends advanced_testcase {
             "blockname" => "mcp", "parentcontextid" => $ctx->id, "showinsubcontexts" => 0,
             "pagetypepattern" => "course-view-*", "subpagepattern" => null,
             "defaultregion" => "side-pre", "defaultweight" => 0,
+            "timecreated" => time(), "timemodified" => time(),
             "configdata" => base64_encode(serialize((object)["audience" => "all", "teacherwrite" => 0])),
         ];
         $block->id = $DB->insert_record("block_instances", $block);
@@ -150,6 +152,7 @@ final class policy_test extends advanced_testcase {
             "blockname" => "mcp", "parentcontextid" => $ctx->id, "showinsubcontexts" => 0,
             "pagetypepattern" => "course-view-*", "subpagepattern" => null,
             "defaultregion" => "side-pre", "defaultweight" => 0,
+            "timecreated" => time(), "timemodified" => time(),
             "configdata" => base64_encode(serialize((object)["audience" => "all", "teacherwrite" => 1])),
         ];
         $DB->insert_record("block_instances", $instance);
@@ -177,6 +180,7 @@ final class policy_test extends advanced_testcase {
             "blockname" => "mcp", "parentcontextid" => $ctx->id, "showinsubcontexts" => 0,
             "pagetypepattern" => "course-view-*", "subpagepattern" => null,
             "defaultregion" => "side-pre", "defaultweight" => 0,
+            "timecreated" => time(), "timemodified" => time(),
             "configdata" => base64_encode(serialize((object)["audience" => "all", "teacherwrite" => 0])),
         ]);
         $access = policy::course_access($manager->id, $course->id);
