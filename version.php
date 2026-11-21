@@ -31,5 +31,5 @@ $plugin->requires = 2020110900;
 $plugin->maturity = MATURITY_STABLE;
 
 $plugin->dependencies = [
-    "local_mcp" => 2026112000,
+    "local_mcp" => 2026112001,
 ];
