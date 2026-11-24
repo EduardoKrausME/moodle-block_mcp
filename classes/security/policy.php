@@ -22,16 +22,10 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-
 namespace block_mcp\security;
 
 use context;
-use context_course;
-use context_module;
-use context_system;
-use core_plugin_manager;
 use local_mcp\exception\api_exception;
-use stdClass;
 
 /**
  * Per-course policy applied to both discovery and execution in local_mcp.
@@ -62,82 +56,7 @@ final class policy {
      * @return array{allowed:bool,teacher:bool,write:bool}
      */
     public static function course_access(int $userid, int $courseid): array {
-        global $DB;
-
-        $denied = ["allowed" => false, "teacher" => false, "write" => false];
-        if ($userid <= 0 || $courseid <= SITEID) {
-            return $denied;
-        }
-        $plugininfo = core_plugin_manager::instance()->get_plugin_info("block_mcp");
-        if (!$plugininfo || $plugininfo->is_enabled() === false) {
-            return $denied;
-        }
-        $course = $DB->get_record("course", ["id" => $courseid], "id,visible");
-        if (!$course) {
-            return $denied;
-        }
-        $ctx = context_course::instance($courseid);
-        // Legacy audience=all and a student :use permission must not grant access.
-        if (!has_capability("block/mcp:teach", $ctx, $userid) ||
-            !has_capability("block/mcp:use", $ctx, $userid)) {
-            return $denied;
-        }
-        // A course manager can have access without an active enrolment.
-        if (!is_enrolled($ctx, $userid, "", true) &&
-            !has_capability("moodle/course:view", $ctx, $userid)) {
-            return $denied;
-        }
-        if (!$course->visible && !has_capability("moodle/course:viewhiddencourses", $ctx, $userid)) {
-            return $denied;
-        }
-        $isteacher = has_capability("block/mcp:teach", $ctx, $userid);
-        $instances = $DB->get_records("block_instances", [
-            "blockname" => "mcp", "parentcontextid" => $ctx->id,
-        ]);
-        foreach ($instances as $instance) {
-            if (!self::is_course_block($instance)) {
-                continue;
-            }
-            // An explicit hidden position disables access; absence of a position uses
-            // the block's default visibility.
-            if ($DB->record_exists("block_positions", [
-                "blockinstanceid" => $instance->id, "visible" => 0,
-            ])) {
-                continue;
-            }
-            $config = self::read_config((string)$instance->configdata);
-            return [
-                "allowed" => true,
-                "teacher" => $isteacher,
-                "write" => $isteacher && !empty($config["teacherwrite"])
-                    && has_capability("block/mcp:write", $ctx, $userid),
-            ];
-        }
-        return $denied;
-    }
-
-    /** Ignore block instances not configured for a course page. */
-    private static function is_course_block(stdClass $instance): bool {
-        $pattern = (string)$instance->pagetypepattern;
-        return $pattern === "course-view-*" || $pattern === "course-view"
-            || strpos($pattern, "course-view-") === 0;
-    }
-
-    /** Decode only scalar configuration, without instantiating arbitrary PHP classes. */
-    private static function read_config(string $data): array {
-        if ($data === "") {
-            return [];
-        }
-        $decoded = base64_decode($data, true);
-        if ($decoded === false) {
-            return [];
-        }
-        $value = @unserialize($decoded, ["allowed_classes" => false]);
-        if (!is_object($value) && !is_array($value)) {
-            return [];
-        }
-        $values = (array)$value;
-        return ["teacherwrite" => !empty($values["teacherwrite"])];
+        return course_access::resolve($userid, $courseid);
     }
 
     /** Include courses managed by non-enrolled staff and recheck each block. */
@@ -188,6 +107,18 @@ final class policy {
         if (!$access["allowed"] || !$access["teacher"]) {
             self::deny();
         }
+        self::authorize_scope($tool, $write, $access);
+        self::authorize_context($userid, $context, (int)$coursectx->instanceid, $args);
+    }
+
+    /**
+     * Check the operation scope and the tool allowlist.
+     *
+     * @param string $tool Tool name.
+     * @param bool $write Whether the operation writes.
+     * @param array $access Effective course access.
+     */
+    private static function authorize_scope(string $tool, bool $write, array $access): void {
         if ($write) {
             if (!$access["write"] || !in_array($tool, self::TEACHER_WRITE, true)) {
                 self::deny();
@@ -196,12 +127,22 @@ final class policy {
             !in_array($tool, self::TEACHER_READ, true)) {
             self::deny();
         }
-        // Bind explicit course identifiers to the context returned by the tool.
-        if (isset($args["courseid"]) && (int)$args["courseid"] !== (int)$coursectx->instanceid) {
+    }
+
+    /**
+     * Bind explicit course identifiers and check module visibility for this user.
+     *
+     * @param int $userid User ID.
+     * @param context $context Tool context.
+     * @param int $courseid Authorized course ID.
+     * @param array $args Tool arguments.
+     */
+    private static function authorize_context(int $userid, context $context, int $courseid, array $args): void {
+        if (isset($args["courseid"]) && (int)$args["courseid"] !== $courseid) {
             self::deny();
         }
         if ($context->contextlevel === CONTEXT_MODULE) {
-            $modinfo = get_fast_modinfo((int)$coursectx->instanceid, $userid);
+            $modinfo = get_fast_modinfo($courseid, $userid);
             $cm = $modinfo->cms[(int)$context->instanceid] ?? null;
             if (!$cm || !$cm->uservisible) {
                 self::deny();

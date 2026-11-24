@@ -22,7 +22,6 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-
 namespace block_mcp\mcp;
 
 use local_mcp\extension\read_provider_interface;

@@ -22,7 +22,6 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-
 namespace block_mcp\read\tool;
 
 use context_course;
@@ -82,16 +81,7 @@ final class get_my_grades extends base_tool {
         require_once($CFG->libdir . "/grade/grade_item.php");
         require_once($CFG->libdir . "/grade/grade_grade.php");
         $courseid = (int)$arguments["courseid"];
-        $context = context_course::instance($courseid);
-        $course = get_course($courseid);
-        if (!$course->showgrades &&
-            !has_capability("moodle/grade:viewall", $context, $identity->userid)) {
-            throw new api_exception("permission_denied", 403);
-        }
-        if (!has_capability("moodle/grade:view", $context, $identity->userid)
-            && !has_capability("moodle/grade:viewall", $context, $identity->userid)) {
-            throw new api_exception("permission_denied", 403);
-        }
+        $this->require_grade_access($courseid, $identity->userid);
         $data = grade_get_grades($courseid, "", "", 0, $identity->userid);
         $out = [];
         foreach ($data->items ?? [] as $item) {
@@ -108,5 +98,24 @@ final class get_my_grades extends base_tool {
                 "minimum" => (float)$item->grademin, "maximum" => (float)$item->grademax];
         }
         return ["courseid" => $courseid, "userid" => $identity->userid, "grades" => $out];
+    }
+
+    /**
+     * Check the course gradebook permissions before loading grades.
+     *
+     * @param int $courseid Course ID.
+     * @param int $userid Connected user ID.
+     */
+    private function require_grade_access(int $courseid, int $userid): void {
+        $context = context_course::instance($courseid);
+        $course = get_course($courseid);
+        if (!$course->showgrades &&
+            !has_capability("moodle/grade:viewall", $context, $userid)) {
+            throw new api_exception("permission_denied", 403);
+        }
+        if (!has_capability("moodle/grade:view", $context, $userid)
+            && !has_capability("moodle/grade:viewall", $context, $userid)) {
+            throw new api_exception("permission_denied", 403);
+        }
     }
 }

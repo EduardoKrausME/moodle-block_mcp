@@ -22,11 +22,12 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-
 namespace block_mcp\read\tool;
 
 use assign;
+use cm_info;
 use local_mcp\security\authenticated_identity;
+use stdClass;
 
 /** Assignment and quiz deadlines from modules visible to the connected user. */
 final class get_my_tasks extends base_tool {
@@ -74,7 +75,7 @@ final class get_my_tasks extends base_tool {
      * @return array Return value.
      */
     public function execute(array $arguments, authenticated_identity $identity): array {
-        global $DB, $CFG;
+        global $CFG;
         require_once($CFG->dirroot . "/mod/assign/locallib.php");
         require_once($CFG->dirroot . "/mod/quiz/lib.php");
         $courseid = (int)$arguments["courseid"];
@@ -85,38 +86,80 @@ final class get_my_tasks extends base_tool {
             if (!$cm->uservisible) {
                 continue;
             }
-            if ($cm->modname === "assign" && has_capability("mod/assign:view", $cm->context, $identity->userid)) {
-                $assignment = $DB->get_record("assign", ["id" => $cm->instance], "id,duedate,cutoffdate");
-                if (!$assignment) {
-                    continue;
-                }
-                $submission = $DB->get_record("assign_submission", [
-                    "assignment" => $assignment->id, "userid" => $identity->userid, "latest" => 1,
-                ], "id,status,timemodified");
-                $module = get_coursemodule_from_id("assign", (int)$cm->id, $courseid, false, MUST_EXIST);
-                $instance = new assign($cm->context, $module, $course);
-                $instance->update_effective_access($identity->userid);
-                $effective = $instance->get_instance($identity->userid);
-                $flags = $DB->get_record("assign_user_flags", [
-                    "assignment" => $assignment->id, "userid" => $identity->userid,
-                ], "extensionduedate");
-                $extension = (int)($flags->extensionduedate ?? 0);
-                $due = (int)$effective->duedate;
-                if ($extension > $due) {
-                    $due = $extension;
-                }
-                $tasks[] = ["cmid" => (int)$cm->id, "type" => "assign", "name" => $cm->name,
-                    "due" => $due, "cutoff" => (int)$effective->cutoffdate,
-                    "state" => $submission ? $submission->status : "not_submitted"];
-            } else if ($cm->modname === "quiz" && has_capability("mod/quiz:view", $cm->context, $identity->userid)) {
-                $quiz = $DB->get_record("quiz", ["id" => $cm->instance]);
-                if ($quiz) {
-                    $quiz = quiz_update_effective_access($quiz, $identity->userid);
-                    $tasks[] = ["cmid" => (int)$cm->id, "type" => "quiz", "name" => $cm->name,
-                        "opens" => (int)$quiz->timeopen, "due" => (int)$quiz->timeclose];
-                }
+            $task = $this->get_task($cm, $course, $identity->userid);
+            if ($task !== null) {
+                $tasks[] = $task;
             }
         }
         return ["courseid" => $courseid, "tasks" => $tasks];
+    }
+
+    /**
+     * Return a task only for an activity the connected user can view.
+     *
+     * @param cm_info $cm Course module.
+     * @param stdClass $course Course record.
+     * @param int $userid Connected user ID.
+     * @return array|null
+     */
+    private function get_task(cm_info $cm, stdClass $course, int $userid): ?array {
+        if ($cm->modname === "assign" && has_capability("mod/assign:view", $cm->context, $userid)) {
+            return $this->get_assignment_task($cm, $course, $userid);
+        }
+        if ($cm->modname === "quiz" && has_capability("mod/quiz:view", $cm->context, $userid)) {
+            return $this->get_quiz_task($cm, $userid);
+        }
+        return null;
+    }
+
+    /**
+     * Resolve assignment deadlines, overrides, extensions and submission state.
+     *
+     * @param cm_info $cm Course module.
+     * @param stdClass $course Course record.
+     * @param int $userid Connected user ID.
+     * @return array|null
+     */
+    private function get_assignment_task(cm_info $cm, stdClass $course, int $userid): ?array {
+        global $DB;
+
+        $assignment = $DB->get_record("assign", ["id" => $cm->instance], "id,duedate,cutoffdate");
+        if (!$assignment) {
+            return null;
+        }
+        $submission = $DB->get_record("assign_submission", [
+            "assignment" => $assignment->id, "userid" => $userid, "latest" => 1,
+        ], "id,status,timemodified");
+        $module = get_coursemodule_from_id("assign", (int)$cm->id, (int)$course->id, false, MUST_EXIST);
+        $instance = new assign($cm->context, $module, $course);
+        $instance->update_effective_access($userid);
+        $effective = $instance->get_instance($userid);
+        $flags = $DB->get_record("assign_user_flags", [
+            "assignment" => $assignment->id, "userid" => $userid,
+        ], "extensionduedate");
+        $extension = (int)($flags->extensionduedate ?? 0);
+        $due = max($extension, (int)$effective->duedate);
+        return ["cmid" => (int)$cm->id, "type" => "assign", "name" => $cm->name,
+            "due" => $due, "cutoff" => (int)$effective->cutoffdate,
+            "state" => $submission ? $submission->status : "not_submitted"];
+    }
+
+    /**
+     * Resolve quiz deadlines with the connected user's effective overrides.
+     *
+     * @param cm_info $cm Course module.
+     * @param int $userid Connected user ID.
+     * @return array|null
+     */
+    private function get_quiz_task(cm_info $cm, int $userid): ?array {
+        global $DB;
+
+        $quiz = $DB->get_record("quiz", ["id" => $cm->instance]);
+        if (!$quiz) {
+            return null;
+        }
+        $quiz = quiz_update_effective_access($quiz, $userid);
+        return ["cmid" => (int)$cm->id, "type" => "quiz", "name" => $cm->name,
+            "opens" => (int)$quiz->timeopen, "due" => (int)$quiz->timeclose];
     }
 }

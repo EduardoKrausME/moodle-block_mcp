@@ -22,7 +22,6 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-
 defined('MOODLE_INTERNAL') || die;
 
 $string['accessnote'] = 'Custom MCP connections are not available on every ChatGPT plan or workspace.';

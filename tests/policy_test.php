@@ -74,6 +74,43 @@ final class policy_test extends advanced_testcase {
         $this->assertFalse(policy::course_access($student->id, $course->id)["allowed"]);
         $this->assertFalse(policy::course_access($student->id, $course->id)["write"]);
         $this->assertTrue(policy::course_access($teacher->id, $course->id)["write"]);
+        // Native arrays are supported for older block configurations.
+        $block->configdata = base64_encode(serialize(["teacherwrite" => 1]));
+        $DB->update_record("block_instances", $block);
+        $this->assertTrue(policy::course_access($teacher->id, $course->id)["write"]);
+        $valid = serialize((object)["teacherwrite" => 1]);
+        $invalidconfigs = [
+            "",
+            "not!base64",
+            base64_encode("not serialized"),
+            base64_encode($valid . "trailing"),
+            base64_encode(serialize((object)["teacherwrite" => [1]])),
+            base64_encode(serialize((object)["teacherwrite" => (object)["enabled" => true]])),
+        ];
+        foreach ($invalidconfigs as $config) {
+            $block->configdata = $config;
+            $DB->update_record("block_instances", $block);
+            $access = policy::course_access($teacher->id, $course->id);
+            $this->assertTrue($access["allowed"]);
+            $this->assertFalse($access["write"]);
+        }
+        $block->configdata = base64_encode($valid);
+        $DB->update_record("block_instances", $block);
+        policy::authorize_tool($teacher->id, "get_course", false, $ctx, ["courseid" => $course->id]);
+        policy::authorize_tool($teacher->id, "grade_submission", true, $ctx, ["courseid" => $course->id]);
+        // Valid course access cannot authorize an unrelated course or an unknown tool.
+        $deniedcalls = [
+            ["get_course", false, ["courseid" => $course->id + 1]],
+            ["set_site_config", true, ["courseid" => $course->id]],
+        ];
+        foreach ($deniedcalls as [$tool, $write, $args]) {
+            try {
+                policy::authorize_tool($teacher->id, $tool, $write, $ctx, $args);
+                $this->fail("Unauthorized tool call was accepted.");
+            } catch (api_exception $e) {
+                $this->assertInstanceOf(api_exception::class, $e);
+            }
+        }
         $this->assertFalse(policy::tool_visible($student->id, "set_site_config", false));
         $this->assertFalse(policy::tool_visible($student->id, "grade_submission", true));
         $this->assertFalse(policy::tool_visible($student->id, "block_mcp_get_my_grades", false));
